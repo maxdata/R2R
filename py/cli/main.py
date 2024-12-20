@@ -13,32 +13,25 @@ from cli.commands import (
 )
 from cli.utils.telemetry import posthog, telemetry
 
-
-def add_command_with_telemetry(command):
-    cli.add_command(telemetry(command))
-
-
 # Chunks
-add_command_with_telemetry(collections.collections)
-add_command_with_telemetry(conversations.conversations)
-add_command_with_telemetry(documents.documents)
-add_command_with_telemetry(graphs.graphs)
+cli.add_command(collections.collections)
+cli.add_command(conversations.conversations)
+cli.add_command(documents.documents)
+cli.add_command(graphs.graphs)
 
 # Graph
-add_command_with_telemetry(indices.indices)
-add_command_with_telemetry(prompts.prompts)
-add_command_with_telemetry(retrieval.retrieval)
-add_command_with_telemetry(users.users)
-add_command_with_telemetry(system.system)
-
+cli.add_command(indices.indices)
+cli.add_command(prompts.prompts)
+cli.add_command(retrieval.retrieval)
+cli.add_command(users.users)
+cli.add_command(system.system)
 
 # Database
-add_command_with_telemetry(database.db)
-add_command_with_telemetry(database.upgrade)
-add_command_with_telemetry(database.downgrade)
-add_command_with_telemetry(database.current)
-add_command_with_telemetry(database.history)
-
+cli.add_command(database.db)
+cli.add_command(database.upgrade)
+cli.add_command(database.downgrade)
+cli.add_command(database.current)
+cli.add_command(database.history)
 
 def main():
     try:
@@ -55,7 +48,6 @@ def main():
         if posthog:
             posthog.flush()
             posthog.shutdown()
-
 
 if __name__ == "__main__":
     main()
