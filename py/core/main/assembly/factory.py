@@ -187,7 +187,7 @@ class R2RProviderFactory:
     ) -> Union[
         LiteLLMEmbeddingProvider,
         OllamaEmbeddingProvider,
-        OpenAIEmbeddingProvider,
+        OpenAIEmbeddingProvider
     ]:
         embedding_provider: Optional[EmbeddingProvider] = None
 

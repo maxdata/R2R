@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Any
 
-from openai import AsyncOpenAI, OpenAI
+from openai import AsyncAzureOpenAI
 
 from core.base.abstractions import GenerationConfig
 from core.base.providers.llm import CompletionConfig, CompletionProvider
@@ -13,19 +13,18 @@ logger = logging.getLogger()
 class OpenAICompletionProvider(CompletionProvider):
     def __init__(self, config: CompletionConfig, *args, **kwargs) -> None:
         super().__init__(config)
-        if config.provider != "openai":
+        if config.provider != "azure_openai":
             logger.error(f"Invalid provider: {config.provider}")
             raise ValueError(
-                "OpenAICompletionProvider must be initialized with config with `openai` provider."
+                "AzureOpenAICompletionProvider must be initialized with config with `azure_openai` provider."
             )
-        if not os.getenv("OPENAI_API_KEY"):
-            logger.error("OpenAI API key not found")
+        if not os.getenv("AZURE_OPENAI_API_KEY"):
+            logger.error("Azure OpenAI API key not found")
             raise ValueError(
-                "OpenAI API key not found. Please set the OPENAI_API_KEY environment variable."
+                "Azure OpenAI API key not found. Please set the AZURE_OPENAI_API_KEY environment variable."
             )
-        self.async_client = AsyncOpenAI()
-        self.client = OpenAI()
-        logger.debug("OpenAICompletionProvider initialized successfully")
+        self.client = AsyncAzureOpenAI(api_key=os.getenv("AZURE_OPENAI_API_KEY"))
+        logger.debug("AzureOpenAICompletionProvider initialized successfully")
 
     def _get_base_args(self, generation_config: GenerationConfig) -> dict:
         args = {
@@ -52,13 +51,13 @@ class OpenAICompletionProvider(CompletionProvider):
         args["messages"] = messages
         args = {**args, **kwargs}
 
-        logger.debug(f"Executing async OpenAI task with args: {args}")
+        logger.debug(f"Executing async Azure OpenAI task with args: {args}")
         try:
-            response = await self.async_client.chat.completions.create(**args)
-            logger.debug("Async OpenAI task executed successfully")
+            response = await self.client.chat.completions.create(**args)
+            logger.debug("Async Azure OpenAI task executed successfully")
             return response
         except Exception as e:
-            logger.error(f"Async OpenAI task execution failed: {str(e)}")
+            logger.error(f"Async Azure OpenAI task execution failed: {str(e)}")
             raise
 
     def _execute_task_sync(self, task: dict[str, Any]):
@@ -70,11 +69,11 @@ class OpenAICompletionProvider(CompletionProvider):
         args["messages"] = messages
         args = {**args, **kwargs}
 
-        logger.debug(f"Executing sync OpenAI task with args: {args}")
+        logger.debug(f"Executing sync Azure OpenAI task with args: {args}")
         try:
             response = self.client.chat.completions.create(**args)
-            logger.debug("Sync OpenAI task executed successfully")
+            logger.debug("Sync Azure OpenAI task executed successfully")
             return response
         except Exception as e:
-            logger.error(f"Sync OpenAI task execution failed: {str(e)}")
+            logger.error(f"Sync Azure OpenAI task execution failed: {str(e)}")
             raise
