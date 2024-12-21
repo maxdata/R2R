@@ -5,6 +5,12 @@ from fastapi import FastAPI, HTTPException
 
 # Make sure graspologic and networkx are installed
 # Requires that "graspologic[leiden]" extras are installed if needed.
+
+# The hierarchical_leiden function from graspologic.partition is an implementation of the Leiden community detection algorithm for network analysis13. This algorithm identifies communities in large networks by:
+# Separating nodes into disjoint communities to maximize modularity scores
+# Recursively merging communities into single nodes
+# Optimizing the community structure through refinement phases
+
 from graspologic.partition import hierarchical_leiden
 from pydantic import BaseModel
 

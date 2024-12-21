@@ -11,7 +11,6 @@ from cli.commands import (
     system,
     users,
 )
-from cli.utils.telemetry import posthog, telemetry
 
 # Chunks
 cli.add_command(collections.collections)
@@ -42,12 +41,7 @@ def main():
     except Exception as e:
         # Handle other exceptions if needed
         print("CLI error: An error occurred")
-        raise e
-    finally:
-        # Ensure all events are flushed before exiting
-        if posthog:
-            posthog.flush()
-            posthog.shutdown()
+        raise e        
 
 if __name__ == "__main__":
     main()
