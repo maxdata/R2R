@@ -26,21 +26,15 @@ from .limits import PostgresLimitsHandler
 from .prompts_handler import PostgresPromptsHandler
 from .tokens import PostgresTokensHandler
 from .users import PostgresUserHandler
+from dotenv import load_dotenv
 
 if TYPE_CHECKING:
     from ..providers.crypto import BCryptProvider
 
 logger = logging.getLogger()
 
-
-def get_env_var(new_var, old_var, config_value):
-    value = config_value or os.getenv(new_var) or os.getenv(old_var)
-    if os.getenv(old_var) and not os.getenv(new_var):
-        warnings.warn(
-            f"{old_var} is deprecated and support for it will be removed in release 3.5.0. Use {new_var} instead."
-        )
-    return value
-
+# Load environment variables from a .env file
+load_dotenv()
 
 class PostgresDatabaseProvider(DatabaseProvider):
     # R2R configuration settings
@@ -88,33 +82,19 @@ class PostgresDatabaseProvider(DatabaseProvider):
     ):
         super().__init__(config)
 
-        env_vars = [
-            ("user", "R2R_POSTGRES_USER", "POSTGRES_USER"),
-            ("password", "R2R_POSTGRES_PASSWORD", "POSTGRES_PASSWORD"),
-            ("host", "R2R_POSTGRES_HOST", "POSTGRES_HOST"),
-            ("port", "R2R_POSTGRES_PORT", "POSTGRES_PORT"),
-            ("db_name", "R2R_POSTGRES_DBNAME", "POSTGRES_DBNAME"),
-        ]
+        # Fetch environment variables directly
+        self.user = os.getenv("R2R_POSTGRES_USER", os.getenv("POSTGRES_USER"))
+        self.password = os.getenv("R2R_POSTGRES_PASSWORD", os.getenv("POSTGRES_PASSWORD"))
+        self.host = os.getenv("R2R_POSTGRES_HOST", os.getenv("POSTGRES_HOST"))
+        self.port = int(os.getenv("R2R_POSTGRES_PORT", os.getenv("POSTGRES_PORT", 5432)))
+        self.db_name = os.getenv("R2R_POSTGRES_DBNAME", os.getenv("POSTGRES_DBNAME"))
 
-        for attr, new_var, old_var in env_vars:
-            if value := get_env_var(new_var, old_var, getattr(config, attr)):
-                setattr(self, attr, value)
-            else:
-                raise ValueError(
-                    f"Error, please set a valid {new_var} environment variable or set a '{attr}' in the 'database' settings of your `r2r.toml`."
-                )
+        # Check if any required environment variable is missing
+        required_vars = [self.user, self.password, self.host, self.db_name]
+        if any(var is None for var in required_vars):
+            raise ValueError("Error, please ensure all required environment variables are set.")
 
-        self.port = int(self.port)
-
-        self.project_name = (
-            get_env_var(
-                "R2R_PROJECT_NAME",
-                "R2R_POSTGRES_PROJECT_NAME",  # Remove this after deprecation
-                config.app.project_name,
-            )
-            or "r2r_default"
-        )
-
+        self.project_name = os.getenv("R2R_PROJECT_NAME", "r2r_default")
         if not self.project_name:
             raise ValueError(
                 "Error, please set a valid R2R_PROJECT_NAME environment variable or set a 'project_name' in the 'database' settings of your `r2r.toml`."
